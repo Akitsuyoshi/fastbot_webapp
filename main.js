@@ -41,6 +41,7 @@ let vueApp = new Vue({
                 this.connecting = false
                 this.$nextTick(() => {
                     this.setupMap()
+                    this.setupCamera()
                     // this.setup3D()
                 })
                 this.setupSubscribers()
@@ -127,6 +128,21 @@ let vueApp = new Vue({
                 mapViewer.shift(mapGridClient.currentGrid.pose.position.x, mapGridClient.currentGrid.pose.position.y)
             })
             
+        },
+        setupCamera() {
+            let without_wss = this.rosbridgeAddress.split('wss://')[1]
+            let domain = without_wss.split('/')[0] + '/' + without_wss.split('/')[1]
+            // console.log(domain)
+            let host = domain + '/cameras'
+            const el = document.getElementById('divCamera')
+            let viewer = new MJPEGCANVAS.Viewer({
+                divID: 'divCamera',
+                host: host,
+                width: el.clientWidth,
+                height: el.clientHeight,
+                topic: '/fastbot_1/camera/image_raw',
+                ssl: true,
+            })
         },
         setup3D() {
             let viewer = new ROS3D.Viewer({

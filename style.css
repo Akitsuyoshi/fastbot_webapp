@@ -38,26 +38,16 @@ body {
    CAMERA
 ========================= */
 
-#camera-feed {
-
-    width: 100%;
-
-    height: 240px;
-
-    object-fit: cover;
-}
-
 /* =========================
    3D VIEWER
 ========================= */
 
+#divCamera,
 #viewer3d {
-
     width: 100%;
-
-    height: 100%;
-
+    aspect-ratio: 4 / 3;
     min-height: 300px;
+    overflow: hidden;
 }
 
 /* =========================
