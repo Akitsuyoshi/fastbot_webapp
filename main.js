@@ -4,6 +4,8 @@ let vueApp = new Vue({
         ros: null,
         connected: false,
         rosbridgeAddress: 'wss://i-0491b82177fd6399f.robotigniteacademy.com/0bfd1914-1d39-4c19-b887-f72f29eba070/rosbridge/',
+        cmdVelTopic: null,
+        cmdVelPublishInterval: null,
         connecting: false,
         connectionError: '',
         dragging: false,
@@ -29,22 +31,40 @@ let vueApp = new Vue({
 
     methods: {
         connectROS() {
+            this.connecting = true
+            this.connectionError = ''
             this.ros = new ROSLIB.Ros({
                 url: this.rosbridgeAddress
             })
             this.ros.on('connection', () => {
                 this.connected = true
-                console.log("Connected to ROS")
-                this.setupMap()
+                this.connecting = false
+                // this.setupMap()
                 // this.setup3D()
                 this.setupSubscribers()
-                setInterval(this.publishJoystick, 100)
+                this.setupPublishers()
+                this.cmdVelPublishInterval = setInterval(() => {
+                    this.publishJoystick()
+                }, 100);
+                console.log("Connected to ROS")
+            })
+            this.ros.on('error', (error) => {
+                this.connecting = false
+                this.connectionError = 'Failed to connect to ROSBridge'
+                console.error(error)
+            })
+            this.ros.on('close', () => {
+                this.connected = false
+                if (this.cmdVelPublishInterval) {
+                    clearInterval(this.cmdVelPublishInterval)
+                }
+                console.log("Disconnected from ROS")
             })
         },
         setupSubscribers() {
             let odom = new ROSLIB.Topic({
                 ros: this.ros,
-                name: '/odom',
+                name: '/fastbot_1/odom',
                 messageType: 'nav_msgs/Odometry'
             })
             odom.subscribe((msg) => {
@@ -60,13 +80,17 @@ let vueApp = new Vue({
                     msg.pose.pose.orientation.z * 180
             })
         },
-        publishJoystick() {
-            if (!this.connected) return
-            let topic = new ROSLIB.Topic({
+        setupPublishers() {
+            this.cmdVelTopic = new ROSLIB.Topic({
                 ros: this.ros,
-                name: '/cmd_vel',
+                name: '/fastbot_1/cmd_vel',
                 messageType: 'geometry_msgs/Twist'
             })
+        },
+        publishJoystick() {
+            if (!this.connected || !this.cmdVelTopic) {
+                return
+            }
             let msg = new ROSLIB.Message({
                 linear: {
                     x: this.joystick.vertical,
@@ -79,7 +103,7 @@ let vueApp = new Vue({
                     z: this.joystick.horizontal
                 }
             })
-            topic.publish(msg)
+            this.cmdVelTopic.publish(msg)
         },
         setupMap() {
             let viewer = new ROS2D.Viewer({
@@ -141,7 +165,7 @@ let vueApp = new Vue({
         doDrag(event) {
             if (!this.dragging) return
             let rect =
-                event.target.getBoundingClientRect()
+                event.currentTarget.getBoundingClientRect()
             let x =
                 event.clientX - rect.left
             let y =
@@ -156,6 +180,7 @@ let vueApp = new Vue({
                 -((y / 180) - 0.5)
             this.joystick.horizontal =
                 ((x / 180) - 0.5)
+            // console.log(this.joystick.vertical, this.joystick.horizontal)
         },
         stopDrag() {
             this.dragging = false
