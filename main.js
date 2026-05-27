@@ -39,8 +39,10 @@ let vueApp = new Vue({
             this.ros.on('connection', () => {
                 this.connected = true
                 this.connecting = false
-                // this.setupMap()
-                // this.setup3D()
+                this.$nextTick(() => {
+                    this.setupMap()
+                    // this.setup3D()
+                })
                 this.setupSubscribers()
                 this.setupPublishers()
                 this.cmdVelPublishInterval = setInterval(() => {
@@ -58,6 +60,7 @@ let vueApp = new Vue({
                 if (this.cmdVelPublishInterval) {
                     clearInterval(this.cmdVelPublishInterval)
                 }
+                document.getElementById('map').innerHTML = ''
                 console.log("Disconnected from ROS")
             })
         },
@@ -106,16 +109,22 @@ let vueApp = new Vue({
             this.cmdVelTopic.publish(msg)
         },
         setupMap() {
+            const el = document.getElementById('map')
             let viewer = new ROS2D.Viewer({
                 divID: 'map',
-                width: 900,
-                height: 700
+                width: el.clientWidth,
+                height: el.clientHeight
             })
-            new NAV2D.OccupancyGridClientNav({
+            // Setup the map client
+            let mapGridClient = new ROS2D.OccupancyGridClient({
                 ros: this.ros,
                 rootObject: viewer.scene,
-                viewer: viewer,
-                serverName: '/move_base'
+                continuous: true,
+            })
+            // Scale the canvas to fit to the map
+            mapGridClient.on('change', () => {
+                viewer.scaleToDimensions(mapGridClient.currentGrid.width, mapGridClient.currentGrid.height);
+                viewer.shift(mapGridClient.currentGrid.pose.position.x, mapGridClient.currentGrid.pose.position.y)
             })
         },
         setup3D() {
