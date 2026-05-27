@@ -1,0 +1,176 @@
+let vueApp = new Vue({
+    el: '#app',
+    data: {
+        ros: null,
+        connected: false,
+        rosbridgeAddress: 'wss://i-0491b82177fd6399f.robotigniteacademy.com/0bfd1914-1d39-4c19-b887-f72f29eba070/rosbridge/',
+        connecting: false,
+        connectionError: '',
+        dragging: false,
+        joystick: {
+            vertical: 0,
+            horizontal: 0
+        },
+        speed: {
+            linear: 0,
+            angular: 0
+        },
+        pose: {
+            x: 0,
+            y: 0,
+            theta: 0
+        },
+        dragCircleStyle: {
+            left: '55px',
+            top: '55px'
+        },
+
+    },
+
+    methods: {
+        connectROS() {
+            this.ros = new ROSLIB.Ros({
+                url: this.rosbridgeAddress
+            })
+            this.ros.on('connection', () => {
+                this.connected = true
+                console.log("Connected to ROS")
+                this.setupMap()
+                // this.setup3D()
+                this.setupSubscribers()
+                setInterval(this.publishJoystick, 100)
+            })
+        },
+        setupSubscribers() {
+            let odom = new ROSLIB.Topic({
+                ros: this.ros,
+                name: '/odom',
+                messageType: 'nav_msgs/Odometry'
+            })
+            odom.subscribe((msg) => {
+                this.speed.linear =
+                    msg.twist.twist.linear.x
+                this.speed.angular =
+                    msg.twist.twist.angular.z
+                this.pose.x =
+                    msg.pose.pose.position.x
+                this.pose.y =
+                    msg.pose.pose.position.y
+                this.pose.theta =
+                    msg.pose.pose.orientation.z * 180
+            })
+        },
+        publishJoystick() {
+            if (!this.connected) return
+            let topic = new ROSLIB.Topic({
+                ros: this.ros,
+                name: '/cmd_vel',
+                messageType: 'geometry_msgs/Twist'
+            })
+            let msg = new ROSLIB.Message({
+                linear: {
+                    x: this.joystick.vertical,
+                    y: 0,
+                    z: 0
+                },
+                angular: {
+                    x: 0,
+                    y: 0,
+                    z: this.joystick.horizontal
+                }
+            })
+            topic.publish(msg)
+        },
+        setupMap() {
+            let viewer = new ROS2D.Viewer({
+                divID: 'map',
+                width: 900,
+                height: 700
+            })
+            new NAV2D.OccupancyGridClientNav({
+                ros: this.ros,
+                rootObject: viewer.scene,
+                viewer: viewer,
+                serverName: '/move_base'
+            })
+        },
+        setup3D() {
+            let viewer = new ROS3D.Viewer({
+                divID: 'viewer3d',
+                width: 300,
+                height: 300,
+                antialias: true
+            })
+            viewer.addObject(new ROS3D.Grid())
+        },
+        goToWaypoint(x, y) {
+            let topic = new ROSLIB.Topic({
+                ros: this.ros,
+                name: '/move_base_simple/goal',
+                messageType: 'geometry_msgs/PoseStamped'
+            })
+            let goal = new ROSLIB.Message({
+                header: {
+                    frame_id: 'map'
+                },
+                pose: {
+                    position: {
+                        x: x,
+                        y: y,
+                        z: 0
+                    },
+                    orientation: {
+                        x: 0,
+                        y: 0,
+                        z: 0,
+                        w: 1
+                    }
+                }
+            })
+            topic.publish(goal)
+        },
+        emergencyStop() {
+            this.joystick.vertical = 0
+            this.joystick.horizontal = 0
+            this.publishJoystick()
+            alert("Emergency Stop Activated")
+        },
+        startDrag() {
+            this.dragging = true
+        },
+        doDrag(event) {
+            if (!this.dragging) return
+            let rect =
+                event.target.getBoundingClientRect()
+            let x =
+                event.clientX - rect.left
+            let y =
+                event.clientY - rect.top
+            x = Math.max(0, Math.min(180, x))
+            y = Math.max(0, Math.min(180, y))
+            this.dragCircleStyle.left =
+                `${x - 35}px`
+            this.dragCircleStyle.top =
+                `${y - 35}px`
+            this.joystick.vertical =
+                -((y / 180) - 0.5)
+            this.joystick.horizontal =
+                ((x / 180) - 0.5)
+        },
+        stopDrag() {
+            this.dragging = false
+            this.dragCircleStyle.left = '55px'
+            this.dragCircleStyle.top = '55px'
+            this.joystick.vertical = 0
+            this.joystick.horizontal = 0
+        }
+    },
+    mounted() {
+        window.addEventListener(
+            'mouseup',
+            this.stopDrag,
+        )
+        // Node: just for debugg purpose, so delete it later
+        this.connectROS()
+    }
+})
