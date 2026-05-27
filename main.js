@@ -72,10 +72,11 @@ let vueApp = new Vue({
                 messageType: 'nav_msgs/Odometry'
             })
             odom.subscribe((msg) => {
-                this.speed.linear =
-                    msg.twist.twist.linear.x
-                this.speed.angular =
-                    msg.twist.twist.angular.z
+                // odom publisher doesn't update its speed vals
+                // this.speed.linear =
+                //     msg.twist.twist.linear.x
+                // this.speed.angular =
+                //     msg.twist.twist.angular.z
                 this.pose.x =
                     msg.pose.pose.position.x
                 this.pose.y =
@@ -95,6 +96,10 @@ let vueApp = new Vue({
             if (!this.connected || !this.cmdVelTopic) {
                 return
             }
+            // Update speed vals
+            this.speed.linear = this.joystick.vertical
+            this.speed.angular = this.joystick.horizontal
+
             let msg = new ROSLIB.Message({
                 linear: {
                     x: this.joystick.vertical,
