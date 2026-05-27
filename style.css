@@ -1,440 +1,192 @@
- body {
-     margin: 0;
-     overflow: hidden;
-     /* removes scrolling */
-     background: #ffffff;
-     color: #222;
-     font-family: "Segoe UI", sans-serif;
- }
-
- /* =========================
-   CONNECTION MODAL
+/* =========================
+   DESKTOP LAYOUT
 ========================= */
 
- .modal-overlay {
+html,
+body {
 
-     position: fixed;
+    width: 100%;
+    height: 100%;
 
-     top: 0;
-     left: 0;
+    overflow: hidden;
+}
 
-     width: 100%;
-     height: 100%;
+/* IMPORTANT FOR FLEXBOX */
 
-     background: rgba(255, 255, 255, 0.95);
+.container-fluid,
+.row,
+.col-md-3,
+.col-md-6 {
 
-     display: flex;
+    min-height: 0;
+}
 
-     justify-content: center;
-     align-items: center;
-
-     z-index: 99999;
- }
-
- .connect-modal {
-
-     width: 420px;
-
-     background: white;
-
-     padding: 40px;
-
-     border-radius: 18px;
-
-     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-
-     text-align: center;
-
-     border: 2px solid #e3edf7;
- }
-
- .connect-modal h1 {
-
-     color: #1565c0;
-
-     margin-bottom: 10px;
-
-     font-size: 32px;
- }
-
- .subtitle {
-
-     color: #666;
-
-     margin-bottom: 25px;
- }
-
- .connect-modal input {
-
-     width: 100%;
-
-     padding: 14px;
-
-     border-radius: 10px;
-
-     border: 2px solid #d7e5f5;
-
-     font-size: 16px;
-
-     outline: none;
-
-     margin-bottom: 20px;
- }
-
- .connect-modal input:focus {
-
-     border-color: #1976d2;
- }
-
- .connect-modal button {
-
-     width: 100%;
-
-     padding: 14px;
-
-     border: none;
-
-     background: #1976d2;
-
-     color: white;
-
-     font-size: 18px;
-
-     font-weight: bold;
-
-     border-radius: 10px;
-
-     cursor: pointer;
-
-     transition: 0.2s;
- }
-
- .connect-modal button:hover {
-
-     background: #1565c0;
- }
-
- .connect-modal button:disabled {
-
-     opacity: 0.6;
-
-     cursor: not-allowed;
- }
-
- .error-text {
-
-     margin-top: 15px;
-
-     color: #e53935;
-
-     font-weight: 600;
- }
-
- /* =========================
-   TOP BAR
-   ========================= */
-
- .topbar {
-     height: 70px;
-     background: #ffffff;
-     border-bottom: 2px solid #dbe4f0;
-
-     display: flex;
-     align-items: center;
-     justify-content: space-between;
-
-     padding: 0 20px;
- }
-
- .topbar h2 {
-     color: #1565c0;
-     margin: 0;
-     font-size: 28px;
-     font-weight: 700;
- }
-
- .status-connected {
-     color: #1565c0;
-     font-weight: 600;
- }
-
- .battery {
-     color: #444;
-     font-weight: 600;
- }
-
- .emergency-btn {
-     background: #e53935;
-     border: none;
-     color: white;
-
-     padding: 10px 18px;
-     border-radius: 8px;
-
-     font-weight: 600;
-     transition: 0.2s;
- }
-
- .emergency-btn:hover {
-     background: #c62828;
- }
-
- /* =========================
-   DASHBOARD LAYOUT
-   ========================= */
-
- .dashboard {
-
-     height: calc(100vh - 70px);
-
-     display: grid;
-
-     grid-template-columns:
-         260px 1fr 320px;
-
-     overflow: hidden;
- }
-
- /* =========================
-   PANELS
-   ========================= */
-
- .panel {
-
-     padding: 18px;
-
-     overflow: hidden;
-
-     border-right: 1px solid #e0e0e0;
-
-     background: #ffffff;
- }
-
- .panel:last-child {
-     border-right: none;
- }
-
- h3 {
-     color: #1565c0;
-     font-size: 20px;
-     margin-bottom: 15px;
- }
-
- /* =========================
-   DESTINATION BUTTONS
-   ========================= */
-
- .destination-btn {
-
-     width: 100%;
-
-     border: none;
-
-     background: #1976d2;
-     color: white;
-
-     padding: 14px;
-
-     margin-bottom: 12px;
-
-     border-radius: 10px;
-
-     text-align: left;
-
-     font-size: 18px;
-
-     transition: 0.2s;
- }
-
- .destination-btn:hover {
-     background: #1565c0;
- }
-
- .add-btn {
-     background: #42a5f5;
- }
-
- /* =========================
+/* =========================
    MAP
-   ========================= */
+========================= */
 
- .map-container {
+#map {
 
-     width: 100%;
+    width: 100%;
 
-     height: calc(100vh - 130px);
+    height: 100%;
 
-     border-radius: 12px;
+    min-height: 0;
+}
 
-     border: 2px solid #d6e4f5;
+/* =========================
+   CAMERA
+========================= */
 
-     overflow: hidden;
+#camera-feed {
 
-     background: #f8fbff;
- }
+    width: 100%;
 
- #map {
-     width: 100%;
-     height: 100%;
- }
+    height: 240px;
 
- /* =========================
-   CAMERA + 3D BOXES
-   ========================= */
+    object-fit: cover;
+}
 
- .camera-box,
- .model-box {
+/* =========================
+   3D VIEWER
+========================= */
 
-     width: 100%;
+#viewer3d {
 
-     height: 280px;
+    width: 100%;
 
-     border-radius: 12px;
+    height: 100%;
 
-     border: 2px solid #d6e4f5;
+    min-height: 300px;
+}
 
-     overflow: hidden;
-
-     background: #f8fbff;
-
-     margin-bottom: 20px;
- }
-
- #camera-feed {
-
-     width: 100%;
-     height: 100%;
-
-     object-fit: cover;
- }
-
- #viewer3d {
-
-     width: 100%;
-     height: 100%;
- }
-
- /* =========================
+/* =========================
    TELEMETRY
-   ========================= */
+========================= */
 
- .telemetry {
+.telemetry {
 
-     margin-top: 30px;
+    font-size: 1rem;
+}
 
-     line-height: 2.2;
- }
+/* =========================
+   FLOATING JOYSTICK
+========================= */
 
- .telemetry p {
+.joystick-container {
 
-     margin: 0;
+    position: fixed;
 
-     font-size: 18px;
- }
+    bottom: 20px;
+    right: 20px;
 
- .telemetry-value {
+    width: 150px;
+    height: 150px;
 
-     color: #1976d2;
+    border-radius: 50%;
 
-     font-weight: bold;
- }
+    background: rgba(255, 255, 255, 0.95);
 
- /* =========================
-   JOYSTICK
-   ========================= */
+    border: 2px solid #dee2e6;
 
- .joystick-container {
+    z-index: 999;
+}
 
-     position: fixed;
+#dragstartzone {
 
-     bottom: 20px;
-     right: 20px;
+    position: relative;
 
-     width: 160px;
-     height: 160px;
+    width: 100%;
+    height: 100%;
+}
 
-     border-radius: 50%;
+#dragCircle {
 
-     background: rgba(240, 245, 250, 0.95);
+    position: absolute;
 
-     border: 2px solid #c9d8ea;
+    width: 60px;
+    height: 60px;
 
-     z-index: 999;
- }
+    border-radius: 50%;
 
- #dragstartzone {
+    background: #0d6efd;
 
-     position: relative;
+    top: 45px;
+    left: 45px;
+}
 
-     width: 100%;
-     height: 100%;
+/* =========================
+   MOBILE / TABLET
+========================= */
 
-     border-radius: 50%;
- }
+@media (max-width: 992px) {
 
- #dragCircle {
+    html,
+    body {
 
-     position: absolute;
+        overflow-y: auto;
+    }
 
-     width: 65px;
-     height: 65px;
+    .container-fluid {
 
-     border-radius: 50%;
+        height: auto !important;
+    }
 
-     background: #1976d2;
+    .row {
 
-     top: 48px;
-     left: 48px;
+        height: auto !important;
+    }
 
-     transition: 0.05s;
- }
+    /* STACK PANELS */
 
- /* =========================
-   RESPONSIVE
-   ========================= */
+    .col-md-3,
+    .col-md-6 {
 
- @media (max-width: 1200px) {
+        width: 100%;
 
-     .dashboard {
+        max-width: 100%;
 
-         grid-template-columns:
-             220px 1fr 280px;
-     }
+        flex: 0 0 100%;
+    }
 
-     .camera-box,
-     .model-box {
-         height: 240px;
-     }
- }
+    /* MAP HEIGHT */
 
- @media (max-width: 900px) {
+    #map {
 
-     body {
-         overflow: auto;
-     }
+        height: 450px;
+    }
 
-     .dashboard {
+    /* CAMERA */
 
-         grid-template-columns: 1fr;
+    #camera-feed {
 
-         height: auto;
-     }
+        height: 260px;
+    }
 
-     .panel {
+    /* 3D VIEWER */
 
-         border-right: none;
+    #viewer3d {
 
-         border-bottom: 1px solid #e0e0e0;
-     }
+        height: 300px;
+    }
 
-     .map-container {
+    /* JOYSTICK SMALLER */
 
-         height: 500px;
-     }
+    .joystick-container {
 
-     .joystick-container {
+        width: 120px;
+        height: 120px;
 
-         width: 130px;
-         height: 130px;
-     }
- }
+        bottom: 15px;
+        right: 15px;
+    }
+
+    #dragCircle {
+
+        width: 50px;
+        height: 50px;
+
+        top: 35px;
+        left: 35px;
+    }
+}

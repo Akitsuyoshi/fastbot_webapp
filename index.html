@@ -27,162 +27,198 @@
     <div id="app">
 
         <!-- CONNECTION MODAL -->
-        <div v-if="!connected" class="modal-overlay">
+        <div class="modal fade show d-block" tabindex="-1" v-if="!connected"
+            style="background: rgba(255,255,255,0.85);">
 
-            <div class="connect-modal">
+            <div class="modal-dialog modal-dialog-centered">
 
-                <h1>FASTBOT CONNECT</h1>
+                <div class="modal-content border-0 shadow-lg">
 
-                <p class="subtitle">
-                    Enter ROSBridge websocket address
-                </p>
+                    <div class="modal-header">
 
-                <input type="text" v-model="rosbridgeAddress" placeholder="ws://localhost:9090">
+                        <h3 class="modal-title text-primary">
+                            FASTBOT CONNECT
+                        </h3>
 
-                <button @click="connectROS" :disabled="connecting">
+                    </div>
 
-                    {{ connecting ? "Connecting..." : "Connect" }}
+                    <div class="modal-body">
 
-                </button>
+                        <p class="text-muted">
+                            Enter ROSBridge websocket address
+                        </p>
 
-                <p class="error-text" v-if="connectionError">
-                    {{ connectionError }}
-                </p>
+                        <input type="text" class="form-control form-control-lg" v-model="rosbridgeAddress"
+                            placeholder="ws://localhost:9090">
+
+                        <div v-if="connectionError" class="alert alert-danger mt-3">
+
+                            {{ connectionError }}
+
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+
+                        <button class="btn btn-primary btn-lg w-100" @click="connectROS" :disabled="connecting">
+
+                            {{ connecting ? "Connecting..." : "Connect" }}
+
+                        </button>
+
+                    </div>
+
+                </div>
 
             </div>
 
         </div>
 
-        <div v-if="connected">
+        <div v-if="connected" class="container-fluid vh-100 d-flex flex-column p-0">
 
             <!-- TOP BAR -->
-            <div class="topbar">
+            <nav class="navbar navbar-light bg-white border-bottom px-4 flex-shrink-0">
 
-                <div>
-                    <h2>FASTBOT HOME</h2>
-                </div>
+                <span class="navbar-brand mb-0 h1 text-primary">
 
-                <div>
+                    FASTBOT HOME
 
-                    <span class="status-connected">
+                </span>
+
+                <div class="d-flex align-items-center gap-3">
+
+                    <span class="text-success fw-bold">
+
                         ● Connected
+
                     </span>
 
-                    &nbsp;&nbsp;
+                    <button class="btn btn-danger" @click="emergencyStop">
 
-                    <button class="emergency-btn" @click="emergencyStop">
                         Emergency Stop
+
                     </button>
 
                 </div>
 
-            </div>
+            </nav>
 
             <!-- MAIN DASHBOARD -->
-            <div class="dashboard">
+            <div class="row flex-grow-1 g-0 overflow-hidden">
 
-                <!-- LEFT PANEL -->
-                <div class="panel">
+                <!-- LEFT -->
+                <div class="col-md-3 border-end p-3 flex-column overflow-hidden">
+                    <div class="d-grid gap-2">
 
-                    <h3>QUICK DESTINATIONS</h3>
+                        <button class="btn btn-primary btn-lg text-start" @click="goToWaypoint(1,2)">
+                            Living Room
+                        </button>
 
-                    <button class="destination-btn" @click="goToWaypoint(1,2)">
-                        • Living Room
-                    </button>
+                        <button class="btn btn-primary btn-lg text-start" @click="goToWaypoint(4,1)">
+                            Kitchen
+                        </button>
 
-                    <button class="destination-btn" @click="goToWaypoint(4,1)">
-                        • Kitchen
-                    </button>
+                        <button class="btn btn-primary btn-lg text-start" @click="goToWaypoint(2,5)">
+                            Bedroom
+                        </button>
 
-                    <button class="destination-btn" @click="goToWaypoint(2,5)">
-                        • Bedroom
-                    </button>
+                    </div>
 
-                    <div class="telemetry">
+                    <div class="card mt-4 shadow-sm">
 
-                        <h3>TELEMETRY</h3>
+                        <div class="card-body">
 
-                        <p>
-                            Speed:
-                            <span class="telemetry-value">
-                                {{ speed.linear.toFixed(2) }} m/s
-                            </span>
-                        </p>
+                            <h5 class="card-title text-primary">
+                                Telemetry
+                            </h5>
 
-                        <p>
-                            Angular:
-                            <span class="telemetry-value">
-                                {{ speed.angular.toFixed(2) }} rad/s
-                            </span>
-                        </p>
+                            <p>
+                                Speed:
+                                <strong class="text-primary">
+                                    {{ speed.linear.toFixed(2) }} m/s
+                                </strong>
+                            </p>
 
-                        <br>
+                            <p>
+                                Angular:
+                                <strong class="text-primary">
+                                    {{ speed.angular.toFixed(2) }} rad/s
+                                </strong>
+                            </p>
 
-                        <p>
-                            X:
-                            <span class="telemetry-value">
-                                {{ pose.x.toFixed(2) }}
-                            </span>
-                        </p>
+                            <hr>
 
-                        <p>
-                            Y:
-                            <span class="telemetry-value">
-                                {{ pose.y.toFixed(2) }}
-                            </span>
-                        </p>
+                            <p>X: {{ pose.x.toFixed(2) }}</p>
+                            <p>Y: {{ pose.y.toFixed(2) }}</p>
+                            <p>θ: {{ pose.theta.toFixed(1) }}°</p>
 
-                        <p>
-                            Theta:
-                            <span class="telemetry-value">
-                                {{ pose.theta.toFixed(1) }}°
-                            </span>
-                        </p>
+                        </div>
 
                     </div>
 
                 </div>
 
-                <!-- CENTER PANEL -->
-                <div class="panel">
+                <!-- CENTER -->
+                <div class="col-md-6 border-end p-3 d-flex flex-column overflow-hidden">
+                    <div class="card shadow-sm h-100">
 
-                    <h3>LIVE MAP</h3>
+                        <div class="card-body d-flex flex-column">
 
-                    <div class="map-container">
-                        <div id="map"></div>
-                    </div>
+                            <h5 class="text-primary">
+                                Live Map
+                            </h5>
 
-                </div>
+                            <div id="map" class="flex-grow-1 rounded border">
+                            </div>
 
-                <!-- RIGHT PANEL -->
-                <div class="panel">
-
-                    <h3>CAMERA</h3>
-
-                    <div class="camera-box">
-
-                        <img id="camera-feed" src="http://localhost:8080/stream?topic=/camera/rgb/image_raw">
-
-                    </div>
-
-                    <h3>3D MODEL</h3>
-
-                    <div class="model-box">
-
-                        <div id="viewer3d"></div>
+                        </div>
 
                     </div>
 
                 </div>
 
-            </div>
+                <!-- RIGHT -->
+                <div class="col-md-3 p-3 d-flex flex-column overflow-hidden">
+                    <div class="card shadow-sm mb-3">
 
-            <!-- FLOATING JOYSTICK -->
-            <div class="joystick-container">
+                        <div class="card-body">
 
-                <div id="dragstartzone" @mousedown="startDrag" @mousemove="doDrag">
+                            <h5 class="text-primary">
+                                Camera
+                            </h5>
 
-                    <div id="dragCircle" :style="dragCircleStyle">
+                            <img id="camera-feed" class="img-fluid rounded border"
+                                src="http://localhost:8080/stream?topic=/camera/rgb/image_raw">
+
+                        </div>
+
+                    </div>
+
+                    <div class="card shadow-sm">
+
+                        <div class="card-body">
+
+                            <h5 class="text-primary">
+                                3D Model
+                            </h5>
+
+                            <div id="viewer3d" class="rounded border">
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- FLOATING JOYSTICK -->
+                <div class="joystick-container">
+
+                    <div id="dragstartzone" @mousedown="startDrag" @mousemove="doDrag">
+
+                        <div id="dragCircle" :style="dragCircleStyle">
+                        </div>
+
                     </div>
 
                 </div>
