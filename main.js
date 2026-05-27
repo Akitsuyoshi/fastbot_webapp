@@ -3,7 +3,7 @@ let vueApp = new Vue({
     data: {
         ros: null,
         connected: false,
-        rosbridgeAddress: 'wss://i-0491b82177fd6399f.robotigniteacademy.com/0bfd1914-1d39-4c19-b887-f72f29eba070/rosbridge/',
+        rosbridgeAddress: 'wss://i-0f8c0374fa7492a66.robotigniteacademy.com/f120ce85-e0b9-4289-bdb1-75bba96b313c/rosbridge/',
         cmdVelTopic: null,
         cmdVelPublishInterval: null,
         connecting: false,
@@ -110,7 +110,7 @@ let vueApp = new Vue({
         },
         setupMap() {
             const el = document.getElementById('map')
-            let viewer = new ROS2D.Viewer({
+            let mapViewer = new ROS2D.Viewer({
                 divID: 'map',
                 width: el.clientWidth,
                 height: el.clientHeight
@@ -118,14 +118,15 @@ let vueApp = new Vue({
             // Setup the map client
             let mapGridClient = new ROS2D.OccupancyGridClient({
                 ros: this.ros,
-                rootObject: viewer.scene,
+                rootObject: mapViewer.scene,
                 continuous: true,
             })
             // Scale the canvas to fit to the map
             mapGridClient.on('change', () => {
-                viewer.scaleToDimensions(mapGridClient.currentGrid.width, mapGridClient.currentGrid.height);
-                viewer.shift(mapGridClient.currentGrid.pose.position.x, mapGridClient.currentGrid.pose.position.y)
+                mapViewer.scaleToDimensions(mapGridClient.currentGrid.width, mapGridClient.currentGrid.height);
+                mapViewer.shift(mapGridClient.currentGrid.pose.position.x, mapGridClient.currentGrid.pose.position.y)
             })
+            
         },
         setup3D() {
             let viewer = new ROS3D.Viewer({
@@ -162,11 +163,11 @@ let vueApp = new Vue({
             })
             topic.publish(goal)
         },
-        emergencyStop() {
+        disconnect() {
             this.joystick.vertical = 0
             this.joystick.horizontal = 0
             this.publishJoystick()
-            alert("Emergency Stop Activated")
+            this.ros.close()
         },
         startDrag() {
             this.dragging = true
