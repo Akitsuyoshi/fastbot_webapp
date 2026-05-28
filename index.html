@@ -116,15 +116,15 @@
                 <div class="col-md-3 border-end p-3 flex-column overflow-hidden">
                     <div class="d-grid gap-2">
 
-                        <button class="btn btn-primary btn-lg text-start" @click="goToWaypoint(1,2)">
+                        <button class="btn btn-primary btn-lg text-start" @click="goToWaypoint(1.4,-1.7)">
                             Living Room
                         </button>
 
-                        <button class="btn btn-primary btn-lg text-start" @click="goToWaypoint(4,1)">
-                            Kitchen
+                        <button class="btn btn-primary btn-lg text-start" @click="goToWaypoint(-2.7,-1.1)">
+                            Sofa
                         </button>
 
-                        <button class="btn btn-primary btn-lg text-start" @click="goToWaypoint(2,5)">
+                        <button class="btn btn-primary btn-lg text-start" @click="goToWaypoint(1.2,1.2)">
                             Bedroom
                         </button>
 
@@ -218,7 +218,7 @@
                 <!-- FLOATING JOYSTICK -->
                 <div class="joystick-container">
 
-                    <div id="dragstartzone" @mousedown="startDrag" @mousemove="doDrag">
+                    <div id="dragstartzone" @mousedown="startDrag" @mousemove="doDrag" @mouseup="stopDrag">
 
                         <div id="dragCircle" :style="dragCircleStyle">
                         </div>

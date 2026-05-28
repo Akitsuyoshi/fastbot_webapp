@@ -3,7 +3,8 @@ let vueApp = new Vue({
     data: {
         ros: null,
         connected: false,
-        rosbridgeAddress: 'wss://i-0f8c0374fa7492a66.robotigniteacademy.com/f120ce85-e0b9-4289-bdb1-75bba96b313c/rosbridge/',
+        rosbridgeAddress: 'wss://i-0e25c77ffa41576df.robotigniteacademy.com/163cab43-1983-463f-832c-24ec1104c839/rosbridge/',
+        goalPoseTopic: null,
         cmdVelTopic: null,
         cmdVelPublishInterval: null,
         connecting: false,
@@ -46,9 +47,6 @@ let vueApp = new Vue({
                 })
                 this.setupSubscribers()
                 this.setupPublishers()
-                this.cmdVelPublishInterval = setInterval(() => {
-                    this.publishJoystick()
-                }, 100);
                 console.log("Connected to ROS")
             })
             this.ros.on('error', (error) => {
@@ -58,10 +56,8 @@ let vueApp = new Vue({
             })
             this.ros.on('close', () => {
                 this.connected = false
-                if (this.cmdVelPublishInterval) {
-                    clearInterval(this.cmdVelPublishInterval)
-                }
                 document.getElementById('map').innerHTML = ''
+                document.getElementById('divCamera').innerHTML = ''
                 console.log("Disconnected from ROS")
             })
         },
@@ -86,6 +82,11 @@ let vueApp = new Vue({
             })
         },
         setupPublishers() {
+            this.goalPoseTopic = new ROSLIB.Topic({
+                ros: this.ros,
+                name: '/goal_pose',
+                messageType: 'geometry_msgs/PoseStamped'
+            })
             this.cmdVelTopic = new ROSLIB.Topic({
                 ros: this.ros,
                 name: '/fastbot_1/cmd_vel',
@@ -159,11 +160,6 @@ let vueApp = new Vue({
             viewer.addObject(new ROS3D.Grid())
         },
         goToWaypoint(x, y) {
-            let topic = new ROSLIB.Topic({
-                ros: this.ros,
-                name: '/move_base_simple/goal',
-                messageType: 'geometry_msgs/PoseStamped'
-            })
             let goal = new ROSLIB.Message({
                 header: {
                     frame_id: 'map'
@@ -182,7 +178,7 @@ let vueApp = new Vue({
                     }
                 }
             })
-            topic.publish(goal)
+            this.goalPoseTopic.publish(goal)
         },
         disconnect() {
             this.joystick.vertical = 0
@@ -212,6 +208,7 @@ let vueApp = new Vue({
             this.joystick.horizontal =
                 ((x / 180) - 0.5)
             // console.log(this.joystick.vertical, this.joystick.horizontal)
+             this.publishJoystick()
         },
         stopDrag() {
             this.dragging = false
@@ -219,13 +216,10 @@ let vueApp = new Vue({
             this.dragCircleStyle.top = '55px'
             this.joystick.vertical = 0
             this.joystick.horizontal = 0
+            this.publishJoystick()
         }
     },
     mounted() {
-        window.addEventListener(
-            'mouseup',
-            this.stopDrag,
-        )
         // Node: just for debugg purpose, so delete it later
         this.connectROS()
     }
