@@ -145,6 +145,35 @@ let vueApp = new Vue({
                 mapViewer.scaleToDimensions(mapGridClient.currentGrid.width, mapGridClient.currentGrid.height);
                 mapViewer.shift(mapGridClient.currentGrid.pose.position.x, mapGridClient.currentGrid.pose.position.y)
             })
+
+            let tfClient = new ROSLIB.TFClient({
+                ros: this.ros,
+                angularThres: 0.01,
+                transThres: 0.01,
+                rate: 10.0,
+                fixedFrame: 'fastbot_1_odom'
+            })
+
+            let robotMarker = new ROS2D.NavigationImage({
+                size: 0.5,
+                image: 'fastbot.png',
+                pulse: false,
+            })
+
+            robotMarker.visible = false;
+            mapViewer.scene.addChild(robotMarker);
+
+            tfClient.subscribe('fastbot_1_base_link', (transform) => {
+                // Extract position
+                robotMarker.x = transform.translation.x;
+                robotMarker.y = -transform.translation.y;
+
+                let q = transform.rotation;
+                let theta = Math.atan2(2.0 * (q.w * q.z + q.x * q.y), 1.0 - 2.0 * (q.y * q.y + q.z * q.z));
+
+                robotMarker.rotation = -theta * (180 / Math.PI);                
+                robotMarker.visible = true;
+            })
             
         },
         setupCamera() {
