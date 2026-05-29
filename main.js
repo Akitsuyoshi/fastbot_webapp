@@ -3,7 +3,7 @@ let vueApp = new Vue({
     data: {
         ros: null,
         connected: false,
-        rosbridgeAddress: 'wss://i-0e25c77ffa41576df.robotigniteacademy.com/163cab43-1983-463f-832c-24ec1104c839/rosbridge/',
+        rosbridgeAddress: 'wss://i-05f5c3b23883f9247.robotigniteacademy.com/290864d0-96c9-4432-9c65-7c11ef1a9990/rosbridge/',
         goalPoseTopic: null,
         cmdVelTopic: null,
         cmdVelPublishInterval: null,
@@ -27,7 +27,6 @@ let vueApp = new Vue({
             left: '55px',
             top: '55px'
         },
-
     },
 
     methods: {
@@ -73,12 +72,23 @@ let vueApp = new Vue({
                 //     msg.twist.twist.linear.x
                 // this.speed.angular =
                 //     msg.twist.twist.angular.z
+
                 this.pose.x =
                     msg.pose.pose.position.x
                 this.pose.y =
                     msg.pose.pose.position.y
                 this.pose.theta =
                     msg.pose.pose.orientation.z * 180
+            })
+
+            let cmdVelSub = new ROSLIB.Topic({
+                ros: this.ros,
+                name: '/fastbot_1/cmd_vel',
+                messageType: 'geometry_msgs/Twist'
+            })
+            cmdVelSub.subscribe((msg) => {
+                this.speed.linear = msg.linear.x
+                this.speed.angular = msg.angular.z
             })
         },
         setupPublishers() {
