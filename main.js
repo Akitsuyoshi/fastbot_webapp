@@ -34,7 +34,8 @@ let vueApp = new Vue({
             this.connecting = true
             this.connectionError = ''
             this.ros = new ROSLIB.Ros({
-                url: this.rosbridgeAddress
+                url: this.rosbridgeAddress,
+                groovyCompatibility: false,
             })
             this.ros.on('connection', () => {
                 this.connected = true
@@ -42,7 +43,7 @@ let vueApp = new Vue({
                 this.$nextTick(() => {
                     this.setupMap()
                     this.setupCamera()
-                    // this.setup3D()
+                    this.setup3D()
                 })
                 this.setupSubscribers()
                 this.setupPublishers()
@@ -57,6 +58,7 @@ let vueApp = new Vue({
                 this.connected = false
                 document.getElementById('map').innerHTML = ''
                 document.getElementById('divCamera').innerHTML = ''
+                document.getElementById('div3DViewer').innerHTML = ''
                 console.log("Disconnected from ROS")
             })
         },
@@ -161,13 +163,42 @@ let vueApp = new Vue({
             })
         },
         setup3D() {
+            const el = document.getElementById('div3DViewer')
             let viewer = new ROS3D.Viewer({
-                divID: 'viewer3d',
-                width: 300,
-                height: 300,
-                antialias: true
+                background: '#cccccc',
+                divID: 'div3DViewer',
+                width: el.clientWidth,
+                height: el.clientHeight,
+                antialias: true,
+                fixedFrame: 'fastbot_1_odom'
             })
-            viewer.addObject(new ROS3D.Grid())
+
+            viewer.addObject(new ROS3D.Grid({
+                color:'#0181c4',
+                cellSize: 0.5,
+                num_cells: 20
+            }))
+
+            let tfClient = new ROSLIB.TFClient({
+                ros: this.ros,
+                angularThres: 0.01,
+                transThres: 0.01,
+                rate: 10.0,
+                fixedFrame: 'fastbot_1_base_link'
+            })
+
+            // Setup the URDF client.
+            let urdfClient = new ROS3D.UrdfClient({
+                ros: this.ros,
+                param: '/fastbot_1_robot_state_publisher:robot_description',
+                tfClient: tfClient,
+                // We use "path: location.origin + location.pathname"
+                // instead of "path: window.location.href" to remove query params,
+                // otherwise the assets fail to load
+                path: location.origin + location.pathname,
+                rootObject: viewer.scene,
+                loader: ROS3D.COLLADA_LOADER_2
+            })
         },
         goToWaypoint(x, y) {
             let goal = new ROSLIB.Message({

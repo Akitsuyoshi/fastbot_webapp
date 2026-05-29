@@ -15,11 +15,17 @@
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
 
     <!-- ROS -->
-    <script src="https://s3.eu-west-1.amazonaws.com/rosject.io/js/roslib.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/easeljs/lib/easeljs.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/eventemitter2/lib/eventemitter2.min.js"></script>
-    <script type="text/javascript" src="ros2d.js"></script>
-    <script type="text/javascript" src="mjpegcanvas.min.js"></script>
+    <!-- <script src="https://s3.eu-west-1.amazonaws.com/rosject.io/js/roslib.min.js"></script> -->
+    <script type="text/javascript" src="./libs/roslib.min.js"></script>
+    <script type="text/javascript" src="./libs/ros2d.js"></script>
+    <script type="text/javascript" src="./libs/mjpegcanvas.min.js"></script>
+    <script type="text/javascript" src="./libs/three.min.js"></script>
+    <script type="text/javascript" src="./libs/ColladaLoader.js"></script>
+    <script type="text/javascript" src="./libs/ColladaLoader2.js"></script>
+    <script type="text/javascript" src="./libs/STLLoader.js"></script>
+    <script type="text/javascript" src="./libs/ros3d.min.js"></script>
 
     <!-- Style -->
     <link rel="stylesheet" href="style.css">
@@ -199,7 +205,7 @@
 
                     </div>
 
-                    <div class="card shadow-sm">
+                    <div class="card shadow-sm mb-3">
 
                         <div class="card-body">
 
@@ -207,7 +213,7 @@
                                 3D Model
                             </h5>
 
-                            <div id="viewer3d" class="rounded border">
+                            <div id="div3DViewer" class="rounded border">
                             </div>
 
                         </div>

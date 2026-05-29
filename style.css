@@ -43,7 +43,7 @@ body {
 ========================= */
 
 #divCamera,
-#viewer3d {
+#div3DViewer {
     width: 100%;
     aspect-ratio: 4 / 3;
     min-height: 300px;
