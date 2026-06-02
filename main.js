@@ -3,7 +3,7 @@ let vueApp = new Vue({
     data: {
         ros: null,
         connected: false,
-        rosbridgeAddress: 'wss://i-0ffe4dbbc81bc8454.robotigniteacademy.com/b21875cf-d51f-4cbc-9502-46e8565a11c4/rosbridge/',
+        rosbridgeAddress: '',
         goalPoseTopic: null,
         cmdVelTopic: null,
         cmdVelPublishInterval: null,
@@ -296,6 +296,5 @@ let vueApp = new Vue({
         }
     },
     mounted() {
-        this.stopDrag()
     }
 })
