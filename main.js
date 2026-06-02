@@ -3,7 +3,7 @@ let vueApp = new Vue({
     data: {
         ros: null,
         connected: false,
-        rosbridgeAddress: 'wss://i-05f5c3b23883f9247.robotigniteacademy.com/290864d0-96c9-4432-9c65-7c11ef1a9990/rosbridge/',
+        rosbridgeAddress: 'wss://i-0ffe4dbbc81bc8454.robotigniteacademy.com/b21875cf-d51f-4cbc-9502-46e8565a11c4/rosbridge/',
         goalPoseTopic: null,
         cmdVelTopic: null,
         cmdVelPublishInterval: null,
@@ -24,8 +24,8 @@ let vueApp = new Vue({
             theta: 0
         },
         dragCircleStyle: {
-            left: '55px',
-            top: '55px'
+            left: '0px',
+            top: '0px'
         },
     },
 
@@ -41,6 +41,7 @@ let vueApp = new Vue({
                 this.connected = true
                 this.connecting = false
                 this.$nextTick(() => {
+                    this.stopDrag()
                     this.setupMap()
                     this.setupCamera()
                     this.setup3D()
@@ -109,10 +110,6 @@ let vueApp = new Vue({
             if (!this.connected || !this.cmdVelTopic) {
                 return
             }
-            // Update speed vals
-            this.speed.linear = this.joystick.vertical
-            this.speed.angular = this.joystick.horizontal
-
             let msg = new ROSLIB.Message({
                 linear: {
                     x: this.joystick.vertical,
@@ -122,7 +119,7 @@ let vueApp = new Vue({
                 angular: {
                     x: 0,
                     y: 0,
-                    z: this.joystick.horizontal
+                    z: -this.joystick.horizontal
                 }
             })
             this.cmdVelTopic.publish(msg)
@@ -263,34 +260,42 @@ let vueApp = new Vue({
             if (!this.dragging) return
             let rect =
                 event.currentTarget.getBoundingClientRect()
+            const SIZE = rect.width
+            const KNOB = document.getElementById('dragCircle').offsetWidth
+            const RADIUS = KNOB / 2
+
             let x =
                 event.clientX - rect.left
             let y =
                 event.clientY - rect.top
-            x = Math.max(0, Math.min(180, x))
-            y = Math.max(0, Math.min(180, y))
+            x = Math.max(0, Math.min(SIZE, x))
+            y = Math.max(0, Math.min(SIZE, y))
             this.dragCircleStyle.left =
-                `${x - 35}px`
+                `${x - RADIUS}px`
             this.dragCircleStyle.top =
-                `${y - 35}px`
+                `${y - RADIUS}px`
             this.joystick.vertical =
-                -((y / 180) - 0.5)
+                -((y / SIZE) - 0.5)
             this.joystick.horizontal =
-                ((x / 180) - 0.5)
+                ((x / SIZE) - 0.5)
             // console.log(this.joystick.vertical, this.joystick.horizontal)
              this.publishJoystick()
         },
         stopDrag() {
             this.dragging = false
-            this.dragCircleStyle.left = '55px'
-            this.dragCircleStyle.top = '55px'
+            const zone = document.getElementById('dragstartzone')
+            const knob = document.getElementById('dragCircle')
+            const center =
+                (zone.offsetWidth - knob.offsetWidth) / 2
+            this.dragCircleStyle.left = `${center}px`
+            this.dragCircleStyle.top = `${center}px`
+
             this.joystick.vertical = 0
             this.joystick.horizontal = 0
             this.publishJoystick()
         }
     },
     mounted() {
-        // Node: just for debugg purpose, so delete it later
-        this.connectROS()
+        this.stopDrag()
     }
 })
