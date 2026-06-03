@@ -60,6 +60,7 @@ let vueApp = new Vue({
                 document.getElementById('map').innerHTML = ''
                 document.getElementById('divCamera').innerHTML = ''
                 document.getElementById('div3DViewer').innerHTML = ''
+                clearInterval(this.cmdVelPublishInterval)
                 console.log("Disconnected from ROS")
             })
         },
@@ -67,7 +68,9 @@ let vueApp = new Vue({
             let odom = new ROSLIB.Topic({
                 ros: this.ros,
                 name: '/fastbot_1/odom',
-                messageType: 'nav_msgs/Odometry'
+                messageType: 'nav_msgs/Odometry',
+                throttle_rate: 200,
+                queue_length: 1,
             })
             odom.subscribe((msg) => {
                 // odom publisher doesn't update its speed vals
@@ -76,18 +79,17 @@ let vueApp = new Vue({
                 // this.speed.angular =
                 //     msg.twist.twist.angular.z
 
-                this.pose.x =
-                    msg.pose.pose.position.x
-                this.pose.y =
-                    msg.pose.pose.position.y
-                this.pose.theta =
-                    msg.pose.pose.orientation.z * 180
+                this.pose.x = msg.pose.pose.position.x
+                this.pose.y = msg.pose.pose.position.y
+                this.pose.theta = msg.pose.pose.orientation.z * 180
             })
 
             let cmdVelSub = new ROSLIB.Topic({
                 ros: this.ros,
                 name: '/fastbot_1/cmd_vel',
-                messageType: 'geometry_msgs/Twist'
+                messageType: 'geometry_msgs/Twist',
+                throttle_rate: 200,
+                queue_length: 1,
             })
             cmdVelSub.subscribe((msg) => {
                 this.speed.linear = msg.linear.x
@@ -98,13 +100,20 @@ let vueApp = new Vue({
             this.goalPoseTopic = new ROSLIB.Topic({
                 ros: this.ros,
                 name: '/goal_pose',
-                messageType: 'geometry_msgs/PoseStamped'
+                messageType: 'geometry_msgs/PoseStamped',
+                queue_size: 1,
             })
             this.cmdVelTopic = new ROSLIB.Topic({
                 ros: this.ros,
                 name: '/fastbot_1/cmd_vel',
-                messageType: 'geometry_msgs/Twist'
+                messageType: 'geometry_msgs/Twist',
+                queue_size: 1,
             })
+            this.cmdVelPublishInterval = setInterval(() => {
+                if (this.dragging) {
+                    this.publishJoystick()
+                }
+            }, 25); // 40 Hz
         },
         publishJoystick() {
             if (!this.connected || !this.cmdVelTopic) {
@@ -135,7 +144,7 @@ let vueApp = new Vue({
             let mapGridClient = new ROS2D.OccupancyGridClient({
                 ros: this.ros,
                 rootObject: mapViewer.scene,
-                continuous: true,
+                continuous: false,
             })
             // Scale the canvas to fit to the map
             mapGridClient.on('change', () => {
@@ -147,12 +156,13 @@ let vueApp = new Vue({
                 ros: this.ros,
                 angularThres: 0.01,
                 transThres: 0.01,
-                rate: 10.0,
+                rate: 20.0,
+                topicTimeout: 1.0,
                 fixedFrame: 'fastbot_1_odom'
             })
 
             let robotMarker = new ROS2D.NavigationImage({
-                size: 0.5,
+                size: 0.4,
                 image: 'fastbot.png',
                 pulse: false,
             })
@@ -209,7 +219,8 @@ let vueApp = new Vue({
                 ros: this.ros,
                 angularThres: 0.01,
                 transThres: 0.01,
-                rate: 10.0,
+                rate: 20.0,
+                topicTimeout: 1.0,
                 fixedFrame: 'fastbot_1_base_link'
             })
 
@@ -278,8 +289,6 @@ let vueApp = new Vue({
                 -((y / SIZE) - 0.5)
             this.joystick.horizontal =
                 ((x / SIZE) - 0.5)
-            // console.log(this.joystick.vertical, this.joystick.horizontal)
-             this.publishJoystick()
         },
         stopDrag() {
             this.dragging = false
