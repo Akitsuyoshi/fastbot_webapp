@@ -3,7 +3,7 @@ let vueApp = new Vue({
     data: {
         ros: null,
         connected: false,
-        rosbridgeAddress: 'wss://i-021d66ef33829c8d4.robotigniteacademy.com/d51ea285-aa5e-4e03-8886-bd48d70d15df/rosbridge/',
+        rosbridgeAddress: '',
         goalPoseTopic: null,
         cmdVelTopic: null,
         cmdVelPublishInterval: null,
@@ -70,7 +70,7 @@ let vueApp = new Vue({
                 ros: this.ros,
                 name: '/fastbot_1/odom',
                 messageType: 'nav_msgs/Odometry',
-                throttle_rate: 200,
+                throttle_rate: 100,
                 queue_length: 1,
             })
             odom.subscribe((msg) => {
@@ -114,7 +114,7 @@ let vueApp = new Vue({
                 if (this.dragging) {
                     this.publishJoystick()
                 }
-            }, 25); // 40 Hz
+            }, 33); // 30 Hz
         },
         publishJoystick() {
             if (!this.connected || !this.cmdVelTopic) {
@@ -157,7 +157,7 @@ let vueApp = new Vue({
                 ros: this.ros,
                 angularThres: 0.01,
                 transThres: 0.01,
-                rate: 20.0,
+                rate: 10.0,
                 topicTimeout: 1.0,
                 fixedFrame: 'fastbot_1_odom'
             })
@@ -245,7 +245,7 @@ let vueApp = new Vue({
                 ros: this.ros,
                 angularThres: 0.01,
                 transThres: 0.01,
-                rate: 20.0,
+                rate: 10.0,
                 topicTimeout: 1.0,
                 fixedFrame: 'fastbot_1_base_link'
             })
