@@ -3,7 +3,7 @@ let vueApp = new Vue({
     data: {
         ros: null,
         connected: false,
-        rosbridgeAddress: '',
+        rosbridgeAddress: 'wss://i-021d66ef33829c8d4.robotigniteacademy.com/d51ea285-aa5e-4e03-8886-bd48d70d15df/rosbridge/',
         goalPoseTopic: null,
         cmdVelTopic: null,
         cmdVelPublishInterval: null,
@@ -58,6 +58,7 @@ let vueApp = new Vue({
             this.ros.on('close', () => {
                 this.connected = false
                 document.getElementById('map').innerHTML = ''
+                document.getElementById('cameraImg').innerHTML = ''
                 document.getElementById('divCamera').innerHTML = ''
                 document.getElementById('div3DViewer').innerHTML = ''
                 clearInterval(this.cmdVelPublishInterval)
@@ -184,19 +185,44 @@ let vueApp = new Vue({
             
         },
         setupCamera() {
+            // Load snapshot img first for warm up, and then get video stream
             let without_wss = this.rosbridgeAddress.split('wss://')[1]
             let domain = without_wss.split('/')[0] + '/' + without_wss.split('/')[1]
             // console.log(domain)
             let host = domain + '/cameras'
             const el = document.getElementById('divCamera')
-            let viewer = new MJPEGCANVAS.Viewer({
-                divID: 'divCamera',
-                host: host,
-                width: el.clientWidth,
-                height: el.clientHeight,
-                topic: '/fastbot_1/camera/image_raw',
-                ssl: true,
-            })
+
+            const img = document.getElementById('cameraImg')
+
+            img.onload = () => {
+                // Start MJPEG after first image is visible
+                img.style.display = 'none'
+                let viewer = new MJPEGCANVAS.Viewer({
+                    divID: 'divCamera',
+                    host: host,
+                    width: el.clientWidth,
+                    height: el.clientHeight,
+                    topic: '/fastbot_1/camera/image_raw&type=ros_compressed',
+                    ssl: true,
+                })
+            }
+
+            img.onerror = () => {
+                console.warn('Snapshot failed, starting stream directly')
+
+                let viewer = new MJPEGCANVAS.Viewer({
+                    divID: 'divCamera',
+                    host: host,
+                    width: el.clientWidth,
+                    height: el.clientHeight,
+                    topic: '/fastbot_1/camera/image_raw&type=ros_compressed',
+                    ssl: true,
+                })
+            }
+
+            const url = new URL(this.rosbridgeAddress)
+            img.src = `https://${url.hostname}${url.pathname.replace('/rosbridge/', '/cameras/')}snapshot?topic=/fastbot_1/camera/image_raw`
+
         },
         setup3D() {
             const el = document.getElementById('div3DViewer')
