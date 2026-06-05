@@ -4,6 +4,7 @@ let vueApp = new Vue({
         ros: null,
         connected: false,
         rosbridgeAddress: '',
+        keepAlive: null,
         goalPoseTopic: null,
         cmdVelTopic: null,
         cmdVelPublishInterval: null,
@@ -40,30 +41,42 @@ let vueApp = new Vue({
             this.ros.on('connection', () => {
                 this.connected = true
                 this.connecting = false
+                this.initCore()
                 this.$nextTick(() => {
                     this.stopDrag()
-                    this.setupMap()
                     this.setupCamera()
+                    this.setupMap()
                     this.setup3D()
                 })
                 this.setupSubscribers()
                 this.setupPublishers()
-                console.log("Connected to ROS")
+                console.log("Connected to ROS", new Date().toISOString())
             })
             this.ros.on('error', (error) => {
                 this.connecting = false
                 this.connectionError = 'Failed to connect to ROSBridge'
                 console.error(error)
             })
-            this.ros.on('close', () => {
+            this.ros.on('close', (evt) => {
                 this.connected = false
                 document.getElementById('map').innerHTML = ''
                 document.getElementById('cameraImg').innerHTML = ''
                 document.getElementById('divCamera').innerHTML = ''
                 document.getElementById('div3DViewer').innerHTML = ''
                 clearInterval(this.cmdVelPublishInterval)
-                console.log("Disconnected from ROS")
+                clearInterval(this.keepAlive)
+                console.log("Disconnected from ROS", evt, new Date().toISOString())
             })
+        },
+        initCore() {
+            this.keepAlive = setInterval(() => {
+                if (!this.connected) return
+                // lightweight ROS ping to prevent proxy timeout
+                this.ros.getTopics(
+                    () => {},
+                    () => {}
+                )
+            }, 20000)
         },
         setupSubscribers() {
             let odom = new ROSLIB.Topic({
@@ -157,7 +170,7 @@ let vueApp = new Vue({
                 ros: this.ros,
                 angularThres: 0.01,
                 transThres: 0.01,
-                rate: 10.0,
+                rate: 5.0,
                 topicTimeout: 1.0,
                 fixedFrame: 'fastbot_1_odom'
             })
@@ -185,43 +198,23 @@ let vueApp = new Vue({
             
         },
         setupCamera() {
-            // Load snapshot img first for warm up, and then get video stream
             let without_wss = this.rosbridgeAddress.split('wss://')[1]
             let domain = without_wss.split('/')[0] + '/' + without_wss.split('/')[1]
             // console.log(domain)
             let host = domain + '/cameras'
             const el = document.getElementById('divCamera')
 
-            const img = document.getElementById('cameraImg')
-
-            img.onload = () => {
-                // Start MJPEG after first image is visible
-                img.style.display = 'none'
-                let viewer = new MJPEGCANVAS.Viewer({
-                    divID: 'divCamera',
-                    host: host,
-                    width: el.clientWidth,
-                    height: el.clientHeight,
-                    topic: '/fastbot_1/camera/image_raw&type=ros_compressed',
-                    ssl: true,
-                })
-            }
-
-            img.onerror = () => {
-                console.warn('Snapshot failed, starting stream directly')
-
-                let viewer = new MJPEGCANVAS.Viewer({
-                    divID: 'divCamera',
-                    host: host,
-                    width: el.clientWidth,
-                    height: el.clientHeight,
-                    topic: '/fastbot_1/camera/image_raw&type=ros_compressed',
-                    ssl: true,
-                })
-            }
-
-            const url = new URL(this.rosbridgeAddress)
-            img.src = `https://${url.hostname}${url.pathname.replace('/rosbridge/', '/cameras/')}snapshot?topic=/fastbot_1/camera/image_raw`
+            let viewer = new MJPEGCANVAS.Viewer({
+                divID: 'divCamera',
+                host: host,
+                width: el.clientWidth,
+                height: el.clientHeight,
+                topic: '/fastbot_1/camera/image_raw',
+                refreshRate: 4,
+                interval: 250,
+                quality: 70,
+                ssl: true,
+            })
 
         },
         setup3D() {
@@ -245,7 +238,7 @@ let vueApp = new Vue({
                 ros: this.ros,
                 angularThres: 0.01,
                 transThres: 0.01,
-                rate: 10.0,
+                rate: 5.0,
                 topicTimeout: 1.0,
                 fixedFrame: 'fastbot_1_base_link'
             })
