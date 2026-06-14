@@ -1,6 +1,7 @@
 let vueApp = new Vue({
     el: '#app',
     data: {
+        robot_name: 'fastbot',
         ros: null,
         connected: false,
         rosbridgeAddress: '',
@@ -60,7 +61,6 @@ let vueApp = new Vue({
             this.ros.on('close', (evt) => {
                 this.connected = false
                 document.getElementById('map').innerHTML = ''
-                document.getElementById('cameraImg').innerHTML = ''
                 document.getElementById('divCamera').innerHTML = ''
                 document.getElementById('div3DViewer').innerHTML = ''
                 clearInterval(this.cmdVelPublishInterval)
@@ -73,15 +73,15 @@ let vueApp = new Vue({
                 if (!this.connected) return
                 // lightweight ROS ping to prevent proxy timeout
                 this.ros.getTopics(
-                    () => {},
-                    () => {}
+                    () => { },
+                    () => { }
                 )
             }, 20000)
         },
         setupSubscribers() {
             let odom = new ROSLIB.Topic({
                 ros: this.ros,
-                name: '/fastbot_1/odom',
+                name: `/${this.robot_name}/odom`,
                 messageType: 'nav_msgs/Odometry',
                 throttle_rate: 100,
                 queue_length: 1,
@@ -100,7 +100,7 @@ let vueApp = new Vue({
 
             let cmdVelSub = new ROSLIB.Topic({
                 ros: this.ros,
-                name: '/fastbot_1/cmd_vel',
+                name: `/${this.robot_name}/cmd_vel`,
                 messageType: 'geometry_msgs/Twist',
                 throttle_rate: 200,
                 queue_length: 1,
@@ -119,7 +119,7 @@ let vueApp = new Vue({
             })
             this.cmdVelTopic = new ROSLIB.Topic({
                 ros: this.ros,
-                name: '/fastbot_1/cmd_vel',
+                name: `/${this.robot_name}/cmd_vel`,
                 messageType: 'geometry_msgs/Twist',
                 queue_size: 1,
             })
@@ -158,7 +158,7 @@ let vueApp = new Vue({
             let mapGridClient = new ROS2D.OccupancyGridClient({
                 ros: this.ros,
                 rootObject: mapViewer.scene,
-                continuous: false,
+                continuous: true,
             })
             // Scale the canvas to fit to the map
             mapGridClient.on('change', () => {
@@ -172,7 +172,7 @@ let vueApp = new Vue({
                 transThres: 0.01,
                 rate: 5.0,
                 topicTimeout: 1.0,
-                fixedFrame: 'fastbot_1_odom'
+                fixedFrame: `${this.robot_name}_odom`
             })
 
             let robotMarker = new ROS2D.NavigationImage({
@@ -184,7 +184,7 @@ let vueApp = new Vue({
             robotMarker.visible = false;
             mapViewer.scene.addChild(robotMarker);
 
-            tfClient.subscribe('fastbot_1_base_link', (transform) => {
+            tfClient.subscribe(`${this.robot_name}_base_link`, (transform) => {
                 // Extract position
                 robotMarker.x = transform.translation.x;
                 robotMarker.y = -transform.translation.y;
@@ -192,10 +192,10 @@ let vueApp = new Vue({
                 let q = transform.rotation;
                 let theta = Math.atan2(2.0 * (q.w * q.z + q.x * q.y), 1.0 - 2.0 * (q.y * q.y + q.z * q.z));
 
-                robotMarker.rotation = -theta * (180 / Math.PI);                
+                robotMarker.rotation = -theta * (180 / Math.PI);
                 robotMarker.visible = true;
             })
-            
+
         },
         setupCamera() {
             let without_wss = this.rosbridgeAddress.split('wss://')[1]
@@ -209,7 +209,7 @@ let vueApp = new Vue({
                 host: host,
                 width: el.clientWidth,
                 height: el.clientHeight,
-                topic: '/fastbot_1/camera/image_raw',
+                topic: `/${this.robot_name}_camera/image_raw`,
                 refreshRate: 4,
                 interval: 250,
                 quality: 70,
@@ -225,11 +225,11 @@ let vueApp = new Vue({
                 width: el.clientWidth,
                 height: el.clientHeight,
                 antialias: true,
-                fixedFrame: 'fastbot_1_odom'
+                fixedFrame: `${this.robot_name}_odom`
             })
 
             viewer.addObject(new ROS3D.Grid({
-                color:'#0181c4',
+                color: '#0181c4',
                 cellSize: 0.5,
                 num_cells: 20
             }))
@@ -240,13 +240,13 @@ let vueApp = new Vue({
                 transThres: 0.01,
                 rate: 5.0,
                 topicTimeout: 1.0,
-                fixedFrame: 'fastbot_1_base_link'
+                fixedFrame: `${this.robot_name}_base_link`
             })
 
             // Setup the URDF client.
             let urdfClient = new ROS3D.UrdfClient({
                 ros: this.ros,
-                param: '/fastbot_1_robot_state_publisher:robot_description',
+                param: `/${this.robot_name}_robot_state_publisher:robot_description`,
                 tfClient: tfClient,
                 // We use "path: location.origin + location.pathname"
                 // instead of "path: window.location.href" to remove query params,
