@@ -240,7 +240,7 @@ let vueApp = new Vue({
                 transThres: 0.01,
                 rate: 5.0,
                 topicTimeout: 1.0,
-                fixedFrame: 'fastbot_1_base_link'
+                fixedFrame: 'fastbot_1_odom'
             })
 
             // Setup the URDF client.
